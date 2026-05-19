@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>還日堂｜予約空き状況</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Cormorant+Garamond:wght@300;400;500&display=swap');
+    :root {
+      --bg: #f5f1e8;
+      --paper: #fbf8f0;
+      --ink: #16130f;
+      --ink-soft: #4d463b;
+      --muted: #8a7d68;
+      --line: rgba(38, 32, 24, 0.14);
+      --line-strong: rgba(38, 32, 24, 0.26);
+      --gold: #9b7a3e;
+      --gold-soft: #c7ad78;
+      --deep: #15120e;
+      --blue: #2b77c6;
+      --red: #c94a3f;
+      --shadow: 0 18px 45px rgba(38, 32, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #e9e1d2;
+      color: var(--ink);
+      font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+      letter-spacing: 0.045em;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background:
+        radial-gradient(circle at 18% -8%, rgba(155, 122, 62, 0.16), transparent 34%),
+        linear-gradient(180deg, #fbf8f0 0%, #f2eadb 46%, #ebe0cf 100%);
+      padding-bottom: 34px;
+      overflow: hidden;
+      box-shadow: 0 0 80px rgba(0, 0, 0, 0.16);
+    }
+
+    .ios-header {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      z-index: 999;
+      background: linear-gradient(
+        180deg,
+        rgba(251, 248, 240, 0.78) 0%,
+        rgba(251, 248, 240, 0.54) 52%,
+        rgba(251, 248, 240, 0.18) 82%,
+        rgba(251, 248, 240, 0) 100%
+      );
+      color: var(--ink);
+      padding: env(safe-area-inset-top) 16px 14px;
+      min-height: 82px;
+      display: grid;
+      grid-template-columns: 70px 1fr 70px;
+      align-items: end;
+      border-bottom: none;
+      backdrop-filter: blur(26px) saturate(160%);
+      -webkit-backdrop-filter: blur(26px) saturate(160%);
+      box-shadow:
+        0 10px 36px rgba(38,32,24,0.05);
+    }
+
+    .back-link {
+      color: rgba(22,19,15,0.88);
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 10px 0 4px;
+      letter-spacing: 0.08em;
+      opacity: 0.88;
+    }
+
+    .brand {
+      text-align: left;
+      color: var(--ink);
+      line-height: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      transform: translateY(0px);
+    }
+
+    .brand-logo {
+      width: 50px;
+      height: auto;
+      object-fit: contain;
+      flex: 0 0 auto;
+      filter: brightness(0) saturate(100%);
+      opacity: 0.86;
+    }
+
+    .brand-wordmark {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      transform: translateY(1px);
+    }
+
+    .brand-name {
+      font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      line-height: 1;
+      color: rgba(22,19,15,0.92);
+    }
+
+    .brand-roman {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 7px;
+      font-weight: 400;
+      letter-spacing: 0.36em;
+      color: rgba(90,78,62,0.78);
+      line-height: 1;
+    }
+
+    
+
+    .content {
+      padding: calc(82px + env(safe-area-inset-top) + 22px) 16px 0;
+    }
+
+    .section-title { text-align: left; margin: 2px 0 20px; }
+
+    .kicker {
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 0.28em;
+      margin-bottom: 10px;
+      font-family: Georgia, serif;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+    }
+
+    .lead {
+      margin: 10px 0 0;
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .week-nav {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr 1fr;
+      gap: 8px;
+      margin: 20px 0 14px;
+    }
+
+    .nav-btn, .date-btn, .primary-btn, .ghost-btn {
+      border-radius: 999px;
+      min-height: 44px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .nav-btn, .ghost-btn {
+      border: 1px solid var(--line-strong);
+      color: var(--ink-soft);
+      background: rgba(251, 248, 240, 0.68);
+      font-size: 12px;
+    }
+
+    .date-btn {
+      border: 1px solid rgba(155, 122, 62, 0.34);
+      background: var(--deep);
+      color: #f7f0e3;
+      font-size: 17px;
+      font-weight: 500;
+      box-shadow: 0 10px 22px rgba(21, 18, 14, 0.18);
+    }
+
+    .calendar-shell {
+      border: 1px solid var(--line-strong);
+      background: rgba(251, 248, 240, 0.76);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .calendar-table {
+      border-collapse: collapse;
+      min-width: 650px;
+      width: 650px;
+      table-layout: fixed;
+    }
+
+    .calendar-table th, .calendar-table td {
+      border: 1px solid var(--line);
+      height: 47px;
+      text-align: center;
+      vertical-align: middle;
+      color: var(--ink);
+    }
+
+    .month-row th {
+      height: 50px;
+      font-size: 18px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.38);
+      color: var(--ink);
+    }
+
+    .corner, .time-head, .time-cell {
+      width: 76px;
+      background: rgba(21, 18, 14, 0.035);
+    }
+
+    .time-head { font-size: 14px; color: var(--ink-soft); }
+
+    .day-head {
+      width: 82px;
+      font-size: 17px;
+      line-height: 1.6;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .day-head small { display: block; font-size: 14px; }
+
+    .sat { color: var(--blue) !important; background: rgba(43, 119, 198, 0.06); }
+    .sun { color: var(--red) !important; background: rgba(201, 74, 63, 0.055); }
+
+    .time-cell {
+      color: var(--ink-soft);
+      font-size: 14px;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .slot {
+      font-size: 19px;
+      background: rgba(255, 255, 255, 0.18);
+      user-select: none;
+    }
+
+    .slot.available { color: var(--gold); cursor: pointer; font-weight: 700; }
+    .slot.closed, .slot.unavailable { color: rgba(22, 19, 15, 0.72); }
+
+    .slot.selected {
+      background: var(--deep);
+      color: #f7f0e3;
+      box-shadow: inset 0 0 0 2px rgba(155, 122, 62, 0.46);
+    }
+
+    .legend {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 11px;
+      padding: 10px 3px 0;
+      white-space: nowrap;
+    }
+
+    .selected-box {
+      display: grid;
+      grid-template-columns: 1fr 90px;
+      gap: 10px;
+      align-items: center;
+      margin-top: 16px;
+      border: 1px solid var(--line-strong);
+      padding: 14px;
+      background: rgba(251, 248, 240, 0.72);
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(38, 32, 24, 0.08);
+    }
+
+    .selected-label { color: var(--muted); font-size: 11px; margin-bottom: 5px; }
+    .selected-date { font-size: 18px; font-weight: 500; line-height: 1.4; }
+    .ghost-btn { min-height: 38px; color: var(--ink); }
+
+    .primary-btn {
+      width: 100%;
+      margin-top: 14px;
+      min-height: 54px;
+      border: none;
+      background: var(--deep);
+      color: #f7f0e3;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      box-shadow: 0 14px 28px rgba(21, 18, 14, 0.22);
+    }
+
+    .note {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 15px;
+      background: rgba(251, 248, 240, 0.55);
+      color: var(--ink-soft);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .note-title { color: var(--ink); font-size: 13px; margin-bottom: 5px; }
+
+    .form-panel {
+      margin-top: 16px;
+      border: 1px solid var(--line-strong);
+      padding: 16px 14px;
+      background: rgba(251, 248, 240, 0.78);
+      border-radius: 18px;
+      display: none;
+      box-shadow: var(--shadow);
+    }
+
+    .form-panel.is-open { display: block; }
+    .field { margin-bottom: 13px; }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.62);
+      color: var(--ink);
+      padding: 12px;
+      outline: none;
+    }
+
+    textarea { min-height: 92px; resize: vertical; }
+
+    .submit-btn {
+      width: 100%;
+      min-height: 52px;
+      border: none;
+      border-radius: 999px;
+      background: var(--deep);
+      color: #f7f0e3;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="ios-header">
+      <a class="back-link" href="#">戻る</a>
+      <div class="brand" aria-label="還日堂">
+        <img
+          src="https://res.cloudinary.com/dvr7rww8q/image/upload/v1779030104/ChatGPT_Image_2026%E5%B9%B45%E6%9C%8818%E6%97%A5_00_00_07_xy3xk1.png"
+          alt="還日堂ロゴ"
+          class="brand-logo"
+        />
+        <div class="brand-wordmark">
+          <div class="brand-name">還日堂</div>
+          <div class="brand-roman">KANJITSUDO</div>
+        </div>
+      </div>
+      <div></div>
+    </header>
+
+    <section class="content">
+      <div class="section-title">
+        <div class="kicker">RESERVATION</div>
+        <h1>予約空き状況</h1>
+        <p class="lead">ご希望の日時をお選びください</p>
+      </div>
+
+      <div class="week-nav">
+        <button class="nav-btn" type="button" id="prevWeek">‹ 前の一週間</button>
+        <button class="date-btn" type="button" id="currentWeek">5/19(火)</button>
+        <button class="nav-btn" type="button" id="nextWeek">次の一週間 ›</button>
+      </div>
+
+      <div class="calendar-shell" aria-label="予約空き状況カレンダー">
+        <table class="calendar-table">
+          <thead>
+            <tr class="month-row">
+              <th class="corner"></th>
+              <th colspan="7" id="monthLabel">2026年5月</th>
+            </tr>
+            <tr id="dayHeader">
+              <th class="time-head">日時</th>
+            </tr>
+          </thead>
+          <tbody id="timeBody"></tbody>
+        </table>
+      </div>
+
+      <div class="legend">
+        <span>◎：空きあり</span>
+        <span>×：空きなし</span>
+        <span>−：受付なし</span>
+      </div>
+
+      <div class="selected-box">
+        <div>
+          <div class="selected-label">選択中の日時</div>
+          <div class="selected-date" id="selectedText">未選択</div>
+        </div>
+        <button class="ghost-btn" type="button" id="clearSelection">選び直す</button>
+      </div>
+
+      <button class="primary-btn" type="button" id="openForm">次へ進む　›</button>
+
+      <form class="form-panel" id="reserveForm">
+        <div class="field">
+          <label for="menu">施術メニュー</label>
+          <select id="menu" name="menu" required>
+            <option value="">選択してください</option>
+            <option>初回相談</option>
+            <option>鍼灸治療</option>
+            <option>整体調整</option>
+            <option>美容鍼</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="name">お名前</label>
+          <input id="name" name="name" autocomplete="name" required />
+        </div>
+        <div class="field">
+          <label for="tel">電話番号</label>
+          <input id="tel" name="tel" type="tel" autocomplete="tel" required />
+        </div>
+        <div class="field">
+          <label for="email">メールアドレス</label>
+          <input id="email" name="email" type="email" autocomplete="email" required />
+        </div>
+        <div class="field">
+          <label for="message">ご相談内容</label>
+          <textarea id="message" name="message" placeholder="症状・ご希望などがあればご記入ください"></textarea>
+        </div>
+        <input type="hidden" id="reservedAt" name="reservedAt" />
+        <button class="submit-btn" type="submit">予約内容を送信</button>
+      </form>
+
+      <div class="note">
+        <div class="note-title">ご予約に関する注意事項</div>
+        ・この段階では仮予約です。確定は次の画面または返信にて行います。<br />
+        ・予約の変更、キャンセルは前日18:00までにご連絡ください。<br />
+        ・当日キャンセルの場合、施術料を頂戴する場合がございます。
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ▼ Kanjitsudo の Google アカウントでデプロイした Apps Script WebアプリURLを入れてください
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz7yrizhB9UT0_wL-fuoANevw_Qnb62UF-68Ze0_N1YYnc0AGLAZzCxu3iaMv89T6p6/exec';
+
+    const dayHeader = document.getElementById('dayHeader');
+    const timeBody = document.getElementById('timeBody');
+    const selectedText = document.getElementById('selectedText');
+    const reservedAt = document.getElementById('reservedAt');
+    const openForm = document.getElementById('openForm');
+    const reserveForm = document.getElementById('reserveForm');
+    const monthLabel = document.getElementById('monthLabel');
+    const currentWeek = document.getElementById('currentWeek');
+
+    let selectedValue = '';
+    let selectedSlot = null;
+    let weekStart = getWeekStart(new Date());
+    let days = [];
+    let times = [];
+    let availability = {};
+
+    function getWeekStart(date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function formatYmd(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function jpDateLabel(date) {
+      const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+      return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日(${weekdays[date.getDay()]})`;
+    }
+
+    async function loadAvailability() {
+      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('YOUR_')) {
+        loadDemoAvailability();
+        renderCalendar();
+        return;
+      }
+
+      timeBody.innerHTML = '<tr><td colspan="8" style="height:120px;color:#8a7d68;">空き状況を読み込み中です</td></tr>';
+
+      const start = formatYmd(weekStart);
+      const url = `${GAS_WEB_APP_URL}?action=availability&start=${encodeURIComponent(start)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      days = data.days;
+      times = data.times;
+      availability = data.availability;
+      renderCalendar();
+    }
+
+    function loadDemoAvailability() {
+      const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+      days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(weekStart);
+        d.setDate(weekStart.getDate() + i);
+        return {
+          date: `${d.getDate()}日`,
+          weekday: weekdays[d.getDay()],
+          full: jpDateLabel(d),
+          className: d.getDay() === 6 ? 'sat' : d.getDay() === 0 ? 'sun' : '',
+          ymd: formatYmd(d)
+        };
+      });
+
+      times = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30'];
+      availability = {};
+      times.forEach((time) => {
+        availability[time] = days.map((day, index) => {
+          if (day.weekday === '日' || index === 0) return '-';
+          return Math.random() > 0.78 ? 'o' : 'x';
+        });
+      });
+    }
+
+    function renderCalendar() {
+      dayHeader.innerHTML = '<th class="time-head">日時</th>';
+      timeBody.innerHTML = '';
+
+      if (days.length) {
+        const first = new Date(days[0].ymd || weekStart);
+        monthLabel.textContent = `${first.getFullYear()}年${first.getMonth() + 1}月`;
+        currentWeek.textContent = `${first.getMonth() + 1}/${first.getDate()}(${days[0].weekday})`;
+      }
+
+      days.forEach((day) => {
+        const th = document.createElement('th');
+        th.className = `day-head ${day.className || ''}`;
+        th.innerHTML = `${day.date}<small>(${day.weekday})</small>`;
+        dayHeader.appendChild(th);
+      });
+
+      times.forEach((time) => {
+        const tr = document.createElement('tr');
+        const timeCell = document.createElement('th');
+        timeCell.className = 'time-cell';
+        timeCell.textContent = time;
+        tr.appendChild(timeCell);
+
+        availability[time].forEach((status, index) => {
+          const td = document.createElement('td');
+          td.className = 'slot';
+          td.dataset.date = days[index].ymd;
+          td.dataset.time = time;
+          td.dataset.value = `${days[index].full} ${time}`;
+
+          if (status === 'o') {
+            td.textContent = '◎';
+            td.classList.add('available');
+            td.addEventListener('click', () => selectSlot(td));
+          } else if (status === 'x') {
+            td.textContent = '×';
+            td.classList.add('unavailable');
+          } else {
+            td.textContent = '−';
+            td.classList.add('closed');
+          }
+
+          tr.appendChild(td);
+        });
+
+        timeBody.appendChild(tr);
+      });
+    }
+
+    function selectSlot(cell) {
+      document.querySelectorAll('.slot.selected').forEach((el) => el.classList.remove('selected'));
+      cell.classList.add('selected');
+      selectedSlot = {
+        date: cell.dataset.date,
+        time: cell.dataset.time,
+        label: cell.dataset.value
+      };
+      selectedValue = cell.dataset.value;
+      selectedText.textContent = selectedValue;
+      reservedAt.value = selectedValue;
+    }
+
+    document.getElementById('clearSelection').addEventListener('click', () => {
+      document.querySelectorAll('.slot.selected').forEach((el) => el.classList.remove('selected'));
+      selectedValue = '';
+      selectedSlot = null;
+      selectedText.textContent = '未選択';
+      reservedAt.value = '';
+      reserveForm.classList.remove('is-open');
+    });
+
+    document.getElementById('prevWeek').addEventListener('click', async () => {
+      weekStart.setDate(weekStart.getDate() - 7);
+      await loadAvailability();
+    });
+
+    document.getElementById('nextWeek').addEventListener('click', async () => {
+      weekStart.setDate(weekStart.getDate() + 7);
+      await loadAvailability();
+    });
+
+    openForm.addEventListener('click', () => {
+      if (!selectedSlot) {
+        alert('先に空き枠を選択してください。');
+        return;
+      }
+      reserveForm.classList.add('is-open');
+      reserveForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    reserveForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!selectedSlot) {
+        alert('予約日時を選択してください。');
+        return;
+      }
+
+      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('YOUR_')) {
+        alert('Apps ScriptのURLを設定してください。');
+        return;
+      }
+
+      const formData = new FormData(reserveForm);
+      const payload = {
+        action: 'reserve',
+        date: selectedSlot.date,
+        time: selectedSlot.time,
+        reservedAt: selectedSlot.label,
+        menu: formData.get('menu'),
+        name: formData.get('name'),
+        tel: formData.get('tel'),
+        email: formData.get('email'),
+        message: formData.get('message')
+      };
+
+      const res = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+
+      alert('予約内容を送信しました。確認のご連絡をお待ちください。');
+      reserveForm.reset();
+    });
+
+    loadAvailability();
+  </script>
+</body>
+</html>
