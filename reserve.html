@@ -209,6 +209,24 @@
       box-shadow: 0 10px 22px rgba(21, 18, 14, 0.18);
     }
 
+    .loading-panel {
+      display: none;
+      margin: 16px 0;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 16px;
+      background: rgba(251, 248, 240, 0.62);
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.8;
+      text-align: center;
+      box-shadow: 0 10px 28px rgba(38, 32, 24, 0.06);
+    }
+
+    .loading-panel.is-visible {
+      display: block;
+    }
+
     .calendar-area {
       display: none;
     }
@@ -385,6 +403,49 @@
       font-weight: 500;
       letter-spacing: 0.14em;
     }
+
+    .confirm-panel {
+      margin-top: 16px;
+      border: 1px solid var(--line-strong);
+      padding: 18px 16px;
+      background: rgba(251, 248, 240, 0.86);
+      border-radius: 18px;
+      display: none;
+      box-shadow: var(--shadow);
+    }
+
+    .confirm-panel.is-open {
+      display: block;
+    }
+
+    .confirm-title {
+      font-size: 18px;
+      margin-bottom: 14px;
+      letter-spacing: 0.08em;
+    }
+
+    .confirm-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .confirm-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .confirm-value {
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .confirm-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
   </style>
 </head>
 <body>
@@ -434,6 +495,11 @@
             </option>
         </select>
         <div class="menu-help" id="menuHelp">メニュー選択後、予約可能な開始時間のみ ◎ で表示されます。</div>
+      </div>
+
+      <div class="loading-panel" id="loadingPanel">
+        ただいま空き状況を確認しております。<br />
+        そのまま少々お待ちください。
       </div>
 
       <div class="calendar-area" id="calendarArea">
@@ -493,14 +559,52 @@
           <textarea id="message" name="message" placeholder="症状・ご希望などがあればご記入ください"></textarea>
         </div>
         <input type="hidden" id="reservedAt" name="reservedAt" />
-        <button class="submit-btn" type="submit">予約内容を送信</button>
+        <button class="submit-btn" type="submit">入力内容を確認</button>
       </form>
+
+      <div class="confirm-panel" id="confirmPanel">
+        <div class="confirm-title">予約内容確認</div>
+
+        <div class="confirm-item">
+          <div class="confirm-label">施術メニュー</div>
+          <div class="confirm-value" id="confirmMenu"></div>
+        </div>
+
+        <div class="confirm-item">
+          <div class="confirm-label">ご予約日時</div>
+          <div class="confirm-value" id="confirmDate"></div>
+        </div>
+
+        <div class="confirm-item">
+          <div class="confirm-label">お名前</div>
+          <div class="confirm-value" id="confirmName"></div>
+        </div>
+
+        <div class="confirm-item">
+          <div class="confirm-label">電話番号</div>
+          <div class="confirm-value" id="confirmTel"></div>
+        </div>
+
+        <div class="confirm-item">
+          <div class="confirm-label">メールアドレス</div>
+          <div class="confirm-value" id="confirmEmail"></div>
+        </div>
+
+        <div class="confirm-item">
+          <div class="confirm-label">ご相談内容</div>
+          <div class="confirm-value" id="confirmMessage"></div>
+        </div>
+
+        <div class="confirm-actions">
+          <button class="ghost-btn" type="button" id="backToEdit">修正する</button>
+          <button class="primary-btn" type="button" id="finalSubmit">この内容で予約</button>
+        </div>
+      </div>
 
       <div class="note">
         <div class="note-title">ご予約に関する注意事項</div>
         ・この段階では仮予約です。確定は次の画面または返信にて行います。<br />
-        ・予約の変更、キャンセルは前日18:00までにご連絡ください。<br />
-        ・当日キャンセルの場合、施術料を頂戴する場合がございます。
+        ・キャンセルの場合はお早めにご連絡ください。
       </div>
     </section>
   </main>
@@ -520,6 +624,8 @@
     const menuSelect = document.getElementById('menu');
     const menuHelp = document.getElementById('menuHelp');
     const calendarArea = document.getElementById('calendarArea');
+    const confirmPanel = document.getElementById('confirmPanel');
+    const loadingPanel = document.getElementById('loadingPanel');
 
     let selectedValue = '';
     let selectedSlot = null;
@@ -529,6 +635,7 @@
     let times = [];
     let availability = {};
     let rawAvailability = {};
+    let isAvailabilityLoaded = false;
 
     function getWeekStart(date) {
       const d = new Date(date);
@@ -549,9 +656,16 @@
     }
 
     async function loadAvailability() {
+      isAvailabilityLoaded = false;
+      if (getSelectedDuration()) {
+        loadingPanel.classList.add('is-visible');
+        calendarArea.classList.remove('is-visible');
+      }
       if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('YOUR_')) {
         loadDemoAvailability();
+        isAvailabilityLoaded = true;
         renderCalendar();
+        loadingPanel.classList.remove('is-visible');
         calendarArea.classList.toggle('is-visible', Boolean(getSelectedDuration()));
         return;
       }
@@ -566,8 +680,10 @@
       days = data.days;
       times = data.times;
       rawAvailability = data.availability;
+      isAvailabilityLoaded = true;
       availability = filterAvailabilityByMenu(rawAvailability);
       renderCalendar();
+      loadingPanel.classList.remove('is-visible');
       calendarArea.classList.toggle('is-visible', Boolean(getSelectedDuration()));
     }
 
@@ -647,6 +763,13 @@
         ? '予約可能な開始時間を表示しました。ご希望の日時をお選びください。'
         : 'メニュー選択後、予約可能な開始時間のみ ◎ で表示されます。';
 
+      if (duration && !isAvailabilityLoaded) {
+        loadingPanel.classList.add('is-visible');
+        calendarArea.classList.remove('is-visible');
+        return;
+      }
+
+      loadingPanel.classList.remove('is-visible');
       calendarArea.classList.toggle('is-visible', Boolean(duration));
 
       availability = filterAvailabilityByMenu(rawAvailability);
@@ -775,12 +898,33 @@
         return;
       }
 
+      const formData = new FormData(reserveForm);
+
+      document.getElementById('confirmMenu').textContent = formData.get('menu');
+      document.getElementById('confirmDate').textContent = selectedSlot.label;
+      document.getElementById('confirmName').textContent = formData.get('name');
+      document.getElementById('confirmTel').textContent = formData.get('tel');
+      document.getElementById('confirmEmail').textContent = formData.get('email');
+      document.getElementById('confirmMessage').textContent = formData.get('message') || 'なし';
+
+      reserveForm.style.display = 'none';
+      confirmPanel.classList.add('is-open');
+      confirmPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.getElementById('backToEdit').addEventListener('click', () => {
+      confirmPanel.classList.remove('is-open');
+      reserveForm.style.display = 'block';
+    });
+
+    document.getElementById('finalSubmit').addEventListener('click', async () => {
       if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('YOUR_')) {
         alert('Apps ScriptのURLを設定してください。');
         return;
       }
 
       const formData = new FormData(reserveForm);
+
       const payload = {
         action: 'reserve',
         date: selectedSlot.date,
@@ -793,15 +937,25 @@
         message: formData.get('message')
       };
 
-      const res = await fetch(GAS_WEB_APP_URL, {
+      await fetch(GAS_WEB_APP_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
         body: JSON.stringify(payload)
       });
 
-      alert('予約内容を送信しました。確認のご連絡をお待ちください。');
+      alert('ご予約ありがとうございます。確認メールをお送りしました。');
+
+      confirmPanel.classList.remove('is-open');
+      reserveForm.style.display = 'block';
       reserveForm.reset();
+      reserveForm.classList.remove('is-open');
+
+      document.querySelectorAll('.slot.selected').forEach((el) => el.classList.remove('selected'));
+      selectedSlot = null;
+      selectedText.textContent = '未選択';
     });
 
     loadAvailability();
