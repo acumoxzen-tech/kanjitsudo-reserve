@@ -163,6 +163,22 @@
       line-height: 1.8;
     }
 
+    .menu-first {
+      margin: 20px 0 16px;
+      border: 1px solid var(--line-strong);
+      padding: 14px;
+      background: rgba(251, 248, 240, 0.72);
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(38, 32, 24, 0.08);
+    }
+
+    .menu-help {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
     .week-nav {
       display: grid;
       grid-template-columns: 1fr 1.35fr 1fr;
@@ -191,6 +207,14 @@
       font-size: 14px;
       font-weight: 500;
       box-shadow: 0 10px 22px rgba(21, 18, 14, 0.18);
+    }
+
+    .calendar-area {
+      display: none;
+    }
+
+    .calendar-area.is-visible {
+      display: block;
     }
 
     .calendar-shell {
@@ -366,7 +390,7 @@
 <body>
   <main class="app">
     <header class="ios-header">
-      <a class="back-link" href="#">戻る</a>
+      <a class="back-link" href="https://acumoxzen-tech.github.io/kanjitsudo/">戻る</a>
       <div class="brand" aria-label="還日堂">
         <img
           src="https://res.cloudinary.com/dvr7rww8q/image/upload/v1779030104/ChatGPT_Image_2026%E5%B9%B45%E6%9C%8818%E6%97%A5_00_00_07_xy3xk1.png"
@@ -385,57 +409,73 @@
       <div class="section-title">
         <div class="kicker">RESERVATION</div>
         <h1>予約空き状況</h1>
-        <p class="lead">ご希望の日時をお選びください</p>
+        <p class="lead">先に施術メニューをお選びください</p>
       </div>
 
-      <div class="week-nav">
-        <button class="nav-btn" type="button" id="prevWeek">‹ 前の一週間</button>
-        <button class="date-btn" type="button" id="currentWeek">5/19(火)</button>
-        <button class="nav-btn" type="button" id="nextWeek">次の一週間 ›</button>
+      <div class="menu-first">
+        <label for="menu">施術メニュー</label>
+        <select id="menu" name="menu" form="reserveForm" required>
+          <option value="">選択してください</option>
+
+          <option value="全身調律鍼灸（初診）" data-duration="120">
+              全身調律鍼灸（初診）
+            </option>
+
+          <option value="全身調律鍼灸（再診）" data-duration="90">
+              全身調律鍼灸（再診）
+            </option>
+
+          <option value="美容養生鍼灸（初診）" data-duration="150">
+              美容養生鍼灸（初診）
+            </option>
+
+          <option value="美容養生鍼灸（再診）" data-duration="120">
+              美容養生鍼灸（再診）
+            </option>
+        </select>
+        <div class="menu-help" id="menuHelp">メニュー選択後、予約可能な開始時間のみ ◎ で表示されます。</div>
       </div>
 
-      <div class="calendar-shell" aria-label="予約空き状況カレンダー">
-        <table class="calendar-table">
-          <thead>
-            <tr class="month-row">
-              <th class="corner"></th>
-              <th colspan="7" id="monthLabel">2026年5月</th>
-            </tr>
-            <tr id="dayHeader">
-              <th class="time-head">日時</th>
-            </tr>
-          </thead>
-          <tbody id="timeBody"></tbody>
-        </table>
-      </div>
-
-      <div class="legend">
-        <span>◎：空きあり</span>
-        <span>×：空きなし</span>
-        <span>−：受付なし</span>
-      </div>
-
-      <div class="selected-box">
-        <div>
-          <div class="selected-label">選択中の日時</div>
-          <div class="selected-date" id="selectedText">未選択</div>
+      <div class="calendar-area" id="calendarArea">
+        <div class="week-nav">
+          <button class="nav-btn" type="button" id="prevWeek">‹ 前の一週間</button>
+          <button class="date-btn" type="button" id="currentWeek">5/19(火)</button>
+          <button class="nav-btn" type="button" id="nextWeek">次の一週間 ›</button>
         </div>
-        <button class="ghost-btn" type="button" id="clearSelection">選び直す</button>
-      </div>
 
-      <button class="primary-btn" type="button" id="openForm">次へ進む　›</button>
+        <div class="calendar-shell" aria-label="予約空き状況カレンダー">
+          <table class="calendar-table">
+            <thead>
+              <tr class="month-row">
+                <th class="corner"></th>
+                <th colspan="7" id="monthLabel">2026年5月</th>
+              </tr>
+              <tr id="dayHeader">
+                <th class="time-head">日時</th>
+              </tr>
+            </thead>
+            <tbody id="timeBody"></tbody>
+          </table>
+        </div>
+
+        <div class="legend">
+          <span>◎：空きあり</span>
+          <span>×：空きなし</span>
+          <span>−：受付なし</span>
+        </div>
+
+        <div class="selected-box">
+          <div>
+            <div class="selected-label">選択中の日時</div>
+            <div class="selected-date" id="selectedText">未選択</div>
+          </div>
+          <button class="ghost-btn" type="button" id="clearSelection">選び直す</button>
+        </div>
+
+        <button class="primary-btn" type="button" id="openForm">次へ進む　›</button>
+      </div>
 
       <form class="form-panel" id="reserveForm">
-        <div class="field">
-          <label for="menu">施術メニュー</label>
-          <select id="menu" name="menu" required>
-            <option value="">選択してください</option>
-            <option>初回相談</option>
-            <option>鍼灸治療</option>
-            <option>整体調整</option>
-            <option>美容鍼</option>
-          </select>
-        </div>
         <div class="field">
           <label for="name">お名前</label>
           <input id="name" name="name" autocomplete="name" required />
@@ -477,6 +517,9 @@
     const reserveForm = document.getElementById('reserveForm');
     const monthLabel = document.getElementById('monthLabel');
     const currentWeek = document.getElementById('currentWeek');
+    const menuSelect = document.getElementById('menu');
+    const menuHelp = document.getElementById('menuHelp');
+    const calendarArea = document.getElementById('calendarArea');
 
     let selectedValue = '';
     let selectedSlot = null;
@@ -484,6 +527,7 @@
     let days = [];
     let times = [];
     let availability = {};
+    let rawAvailability = {};
 
     function getWeekStart(date) {
       const d = new Date(date);
@@ -507,6 +551,7 @@
       if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('YOUR_')) {
         loadDemoAvailability();
         renderCalendar();
+        calendarArea.classList.toggle('is-visible', Boolean(getSelectedDuration()));
         return;
       }
 
@@ -519,8 +564,10 @@
 
       days = data.days;
       times = data.times;
-      availability = data.availability;
+      rawAvailability = data.availability;
+      availability = filterAvailabilityByMenu(rawAvailability);
       renderCalendar();
+      calendarArea.classList.toggle('is-visible', Boolean(getSelectedDuration()));
     }
 
     function loadDemoAvailability() {
@@ -538,14 +585,71 @@
       });
 
       times = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
-      availability = {};
+      rawAvailability = {};
       times.forEach((time) => {
-        availability[time] = days.map((day, index) => {
+        rawAvailability[time] = days.map((day, index) => {
           if (day.weekday === '日' || index === 0) return '-';
           return Math.random() > 0.78 ? 'o' : 'x';
         });
       });
+
+      availability = filterAvailabilityByMenu(rawAvailability);
     }
+
+    function getSelectedDuration() {
+      const option = menuSelect.options[menuSelect.selectedIndex];
+      return option ? Number(option.dataset.duration || 0) : 0;
+    }
+
+    function filterAvailabilityByMenu(source) {
+      const duration = getSelectedDuration();
+      const neededSlots = Math.ceil(duration / 30);
+      const result = {};
+
+      if (!duration) {
+        times.forEach((time) => {
+          result[time] = days.map(() => '-');
+        });
+        return result;
+      }
+
+      times.forEach((time, timeIndex) => {
+        result[time] = days.map((day, dayIndex) => {
+          const base = source[time]?.[dayIndex];
+          if (base !== 'o') return base || '-';
+
+          for (let offset = 0; offset < neededSlots; offset++) {
+            const checkTime = times[timeIndex + offset];
+            if (!checkTime || source[checkTime]?.[dayIndex] !== 'o') {
+              return 'x';
+            }
+          }
+
+          return 'o';
+        });
+      });
+
+      return result;
+    }
+
+    menuSelect.addEventListener('change', () => {
+      document.querySelectorAll('.slot.selected').forEach((el) => el.classList.remove('selected'));
+      selectedValue = '';
+      selectedSlot = null;
+      selectedText.textContent = '未選択';
+      reservedAt.value = '';
+      reserveForm.classList.remove('is-open');
+
+      const duration = getSelectedDuration();
+      menuHelp.textContent = duration
+        ? '予約可能な開始時間を表示しました。ご希望の日時をお選びください。'
+        : 'メニュー選択後、予約可能な開始時間のみ ◎ で表示されます。';
+
+      calendarArea.classList.toggle('is-visible', Boolean(duration));
+
+      availability = filterAvailabilityByMenu(rawAvailability);
+      renderCalendar();
+    });
 
     function renderCalendar() {
       dayHeader.innerHTML = '<th class="time-head">日時</th>';
@@ -630,6 +734,11 @@
     });
 
     openForm.addEventListener('click', () => {
+      if (!menuSelect.value) {
+        alert('先に施術メニューを選択してください。');
+        return;
+      }
+
       if (!selectedSlot) {
         alert('先に空き枠を選択してください。');
         return;
@@ -640,6 +749,11 @@
 
     reserveForm.addEventListener('submit', async (event) => {
       event.preventDefault();
+
+      if (!menuSelect.value) {
+        alert('施術メニューを選択してください。');
+        return;
+      }
 
       if (!selectedSlot) {
         alert('予約日時を選択してください。');
