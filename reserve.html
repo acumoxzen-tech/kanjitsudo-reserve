@@ -282,7 +282,7 @@
     }
 
     .slot.available { color: var(--gold); cursor: pointer; font-weight: 700; }
-    .slot.closed, .slot.unavailable { color: rgba(22, 19, 15, 0.72); }
+    .slot.unavailable { color: rgba(22, 19, 15, 0.72); }
 
     .slot.selected {
       background: var(--deep);
@@ -417,7 +417,7 @@
         <select id="menu" name="menu" form="reserveForm" required>
           <option value="">選択してください</option>
 
-          <option value="全身調律鍼灸（初診）" data-duration="120">
+          <option value="全身調律鍼灸（初診）" data-duration="90">
               全身調律鍼灸（初診）
             </option>
 
@@ -425,7 +425,7 @@
               全身調律鍼灸（再診）
             </option>
 
-          <option value="美容養生鍼灸（初診）" data-duration="150">
+          <option value="美容養生鍼灸（初診）" data-duration="120">
               美容養生鍼灸（初診）
             </option>
 
@@ -461,7 +461,7 @@
         <div class="legend">
           <span>◎：空きあり</span>
           <span>×：空きなし</span>
-          <span>−：受付なし</span>
+          <span>×：予約不可</span>
         </div>
 
         <div class="selected-box">
@@ -588,7 +588,7 @@
       rawAvailability = {};
       times.forEach((time) => {
         rawAvailability[time] = days.map((day, index) => {
-          if (day.weekday === '日' || index === 0) return '-';
+          if (Math.random() > 0.9 && index !== 0) return 'x';
           return Math.random() > 0.78 ? 'o' : 'x';
         });
       });
