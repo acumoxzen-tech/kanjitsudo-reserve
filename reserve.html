@@ -474,26 +474,23 @@
       </div>
 
       <div class="menu-first">
-        <label for="menu">施術メニュー</label>
-        <select id="menu" name="menu" form="reserveForm" required>
+        <label for="treatmentType">施術メニュー</label>
+        <select id="treatmentType" required>
           <option value="">選択してください</option>
-
-          <option value="全身調律鍼灸（初診）" data-duration="90">
-              全身調律鍼灸（初診）
-            </option>
-
-          <option value="全身調律鍼灸（再診）" data-duration="90">
-              全身調律鍼灸（再診）
-            </option>
-
-          <option value="美容養生鍼灸（初診）" data-duration="120">
-              美容養生鍼灸（初診）
-            </option>
-
-          <option value="美容養生鍼灸（再診）" data-duration="120">
-              美容養生鍼灸（再診）
-            </option>
+          <option value="全身調律鍼灸">全身調律鍼灸</option>
+          <option value="美容養生鍼灸">美容養生鍼灸</option>
         </select>
+
+        <div style="height: 12px;"></div>
+
+        <label for="visitType">初診・再診</label>
+        <select id="visitType" required>
+          <option value="">選択してください</option>
+          <option value="初診">初診</option>
+          <option value="再診">再診</option>
+        </select>
+
+        <input type="hidden" id="menu" name="menu" form="reserveForm" />
         <div class="menu-help" id="menuHelp">メニュー選択後、予約可能な開始時間のみ ◎ で表示されます。</div>
       </div>
 
@@ -621,6 +618,8 @@
     const reserveForm = document.getElementById('reserveForm');
     const monthLabel = document.getElementById('monthLabel');
     const currentWeek = document.getElementById('currentWeek');
+    const treatmentType = document.getElementById('treatmentType');
+    const visitType = document.getElementById('visitType');
     const menuSelect = document.getElementById('menu');
     const menuHelp = document.getElementById('menuHelp');
     const calendarArea = document.getElementById('calendarArea');
@@ -713,9 +712,25 @@
       availability = filterAvailabilityByMenu(rawAvailability);
     }
 
+    function getCombinedMenu() {
+      if (!treatmentType.value || !visitType.value) return '';
+      return `${treatmentType.value}（${visitType.value}）`;
+    }
+
+    function updateMenuValue() {
+      menuSelect.value = getCombinedMenu();
+    }
+
     function getSelectedDuration() {
-      const option = menuSelect.options[menuSelect.selectedIndex];
-      return option ? Number(option.dataset.duration || 0) : 0;
+      const durations = {
+        '全身調律鍼灸（初診）': 90,
+        '全身調律鍼灸（再診）': 90,
+        '美容養生鍼灸（初診）': 120,
+        '美容養生鍼灸（再診）': 120
+      };
+
+      updateMenuValue();
+      return durations[menuSelect.value] || 0;
     }
 
     function filterAvailabilityByMenu(source) {
@@ -750,7 +765,22 @@
       return result;
     }
 
-    menuSelect.addEventListener('change', () => {
+    function applyPresetFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const preset = params.get('menu');
+
+      if (preset === 'zenshin') {
+        treatmentType.value = '全身調律鍼灸';
+      }
+
+      if (preset === 'biyou') {
+        treatmentType.value = '美容養生鍼灸';
+      }
+
+      updateMenuValue();
+    }
+
+    function handleMenuChange() {
       document.querySelectorAll('.slot.selected').forEach((el) => el.classList.remove('selected'));
       selectedValue = '';
       selectedSlot = null;
@@ -774,7 +804,10 @@
 
       availability = filterAvailabilityByMenu(rawAvailability);
       renderCalendar();
-    });
+    }
+
+    treatmentType.addEventListener('change', handleMenuChange);
+    visitType.addEventListener('change', handleMenuChange);
 
     function renderCalendar() {
       dayHeader.innerHTML = '<th class="time-head">日時</th>';
@@ -858,7 +891,8 @@
         weekStart = nextStart;
       }
 
-      await loadAvailability();
+      await applyPresetFromUrl();
+    loadAvailability();
     });
 
     document.getElementById('nextWeek').addEventListener('click', async () => {
@@ -868,7 +902,7 @@
 
     openForm.addEventListener('click', () => {
       if (!menuSelect.value) {
-        alert('先に施術メニューを選択してください。');
+        alert('先に施術メニューと初診・再診を選択してください。');
         return;
       }
 
@@ -884,7 +918,7 @@
       event.preventDefault();
 
       if (!menuSelect.value) {
-        alert('施術メニューを選択してください。');
+        alert('施術メニューと初診・再診を選択してください。');
         return;
       }
 
@@ -951,6 +985,9 @@
       confirmPanel.classList.remove('is-open');
       reserveForm.style.display = 'block';
       reserveForm.reset();
+      treatmentType.value = '';
+      visitType.value = '';
+      menuSelect.value = '';
       reserveForm.classList.remove('is-open');
 
       document.querySelectorAll('.slot.selected').forEach((el) => el.classList.remove('selected'));
