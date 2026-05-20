@@ -767,13 +767,33 @@
 
     function applyPresetFromUrl() {
       const params = new URLSearchParams(window.location.search);
-      const preset = params.get('menu');
+      const preset = (params.get('menu') || '').trim().toLowerCase();
 
-      if (preset === 'zenshin') {
+      const zenshinAliases = [
+        'zenshin',
+        'zenshinchiryo',
+        'zenshin_chiryo',
+        'zenshin-chiryo',
+        '全身',
+        '全身治療',
+        '全身調律鍼灸'
+      ];
+
+      const biyouAliases = [
+        'biyou',
+        'biyo',
+        'beauty',
+        'biyouyousei',
+        '美容',
+        '美容鍼灸',
+        '美容養生鍼灸'
+      ];
+
+      if (zenshinAliases.includes(preset)) {
         treatmentType.value = '全身調律鍼灸';
       }
 
-      if (preset === 'biyou') {
+      if (biyouAliases.includes(preset)) {
         treatmentType.value = '美容養生鍼灸';
       }
 
