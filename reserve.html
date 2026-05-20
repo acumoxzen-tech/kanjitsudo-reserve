@@ -778,6 +778,10 @@
       }
 
       updateMenuValue();
+
+      if (treatmentType.value) {
+        handleMenuChange();
+      }
     }
 
     function handleMenuChange() {
@@ -891,8 +895,7 @@
         weekStart = nextStart;
       }
 
-      await applyPresetFromUrl();
-    loadAvailability();
+      await loadAvailability();
     });
 
     document.getElementById('nextWeek').addEventListener('click', async () => {
@@ -995,6 +998,7 @@
       selectedText.textContent = '未選択';
     });
 
+    applyPresetFromUrl();
     loadAvailability();
   </script>
 </body>
