@@ -133,8 +133,6 @@
       line-height: 1;
     }
 
-    
-
     .content {
       padding: calc(82px + env(safe-area-inset-top) + 22px) 16px 0;
     }
@@ -523,7 +521,6 @@
 
         <div class="legend">
           <span>◎：空きあり</span>
-          <span>×：空きなし</span>
           <span>×：予約不可</span>
         </div>
 
@@ -607,7 +604,6 @@
   </main>
 
   <script>
-    // ▼ Kanjitsudo の Google アカウントでデプロイした Apps Script WebアプリURLを入れてください
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbziZzIQPKesi-DAMfoeLXZNF1cGzCeW3Ac0gITuXQ_RjL4EvmmLYtfvHwQh9NcWNqVE/exec';
 
     const dayHeader = document.getElementById('dayHeader');
@@ -629,7 +625,9 @@
     let selectedValue = '';
     let selectedSlot = null;
     let weekStart = getWeekStart(new Date());
-    const todayYmd = formatYmd(new Date());
+    const now = new Date();
+    const todayYmd = formatYmd(now);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes() + 20;
     let days = [];
     let times = [];
     let availability = {};
@@ -652,6 +650,11 @@
     function jpDateLabel(date) {
       const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
       return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日(${weekdays[date.getDay()]})`;
+    }
+
+    function timeToMinutes(time) {
+      const [h, m] = time.split(':').map(Number);
+      return h * 60 + m;
     }
 
     async function loadAvailability() {
@@ -749,6 +752,7 @@
         result[time] = days.map((day, dayIndex) => {
           const base = source[time]?.[dayIndex];
           if (day.ymd < todayYmd) return 'x';
+          if (day.ymd === todayYmd && timeToMinutes(time) <= currentMinutes) return 'x';
           if (base !== 'o') return base || '-';
 
           for (let offset = 0; offset < neededSlots; offset++) {
@@ -952,6 +956,11 @@
 
       if (selectedSlot.date < todayYmd) {
         alert('過去の日付は予約できません。');
+        return;
+      }
+
+      if (selectedSlot.date === todayYmd && timeToMinutes(selectedSlot.time) <= currentMinutes) {
+        alert('現在時刻から30分以内の枠は予約できません。');
         return;
       }
 
