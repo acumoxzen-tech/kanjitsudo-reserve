@@ -444,35 +444,79 @@
       gap: 10px;
       margin-top: 18px;
     }
-  
-    .success-panel{
-      display:none;
-      margin-top:16px;
-      border:1px solid var(--line-strong);
-      border-radius:24px;
-      padding:28px 22px;
-      background:rgba(251,248,240,0.92);
-      text-align:center;
-      box-shadow:var(--shadow);
+
+    .success-panel {
+      display: none;
+      margin-top: 16px;
+      border: 1px solid var(--line-strong);
+      border-radius: 24px;
+      padding: 30px 22px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(155, 122, 62, 0.12), transparent 38%),
+        rgba(251, 248, 240, 0.94);
+      text-align: center;
+      box-shadow: var(--shadow);
     }
-    .success-panel.is-open{display:block;}
-    .success-mark{
-      font-size:42px;
-      margin-bottom:12px;
-      color:var(--gold);
+
+    .success-panel.is-open {
+      display: block;
     }
-    .success-title{
-      font-size:24px;
-      letter-spacing:.12em;
-      margin-bottom:12px;
+
+    .success-mark {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 16px;
+      border: 1px solid rgba(155, 122, 62, 0.34);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      font-size: 24px;
+      background: rgba(255, 255, 255, 0.34);
     }
-    .success-text{
-      color:var(--ink-soft);
-      line-height:1.9;
-      margin-bottom:18px;
+
+    .success-title {
+      font-size: 23px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      margin-bottom: 14px;
     }
-    
-</style>
+
+    .success-text {
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.9;
+      margin-bottom: 18px;
+    }
+
+    .success-summary {
+      margin: 18px 0 20px;
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .home-link {
+      width: 100%;
+      min-height: 54px;
+      border-radius: 999px;
+      background: var(--deep);
+      color: #f7f0e3;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 14px 28px rgba(21, 18, 14, 0.18);
+    }
+
+  </style>
 </head>
 <body>
   <main class="app">
@@ -623,17 +667,19 @@
         </div>
       </div>
 
-      
+
       <div class="success-panel" id="successPanel">
-        <div class="success-mark">✦</div>
+        <div class="success-mark">✓</div>
         <div class="success-title">ご予約を承りました</div>
         <div class="success-text">
-          ご予約ありがとうございます。<br>
-          確認メールをお送りしております。<br>
+          ご予約ありがとうございます。<br />
+          確認メールをお送りしております。<br />
           当日のご来院を心よりお待ちしております。
         </div>
-        <div id="successSummary" class="success-text"></div>
-        <a class="primary-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none;" href="https://acumoxzen-tech.github.io/kanjitsudo-site/?ver=20260518#top">還日堂ホームへ戻る</a>
+        <div class="success-summary" id="successSummary"></div>
+        <a class="home-link" href="https://acumoxzen-tech.github.io/kanjitsudo-site/?ver=20260518#top">
+          還日堂ホームへ戻る
+        </a>
       </div>
 
       <div class="note">
@@ -663,6 +709,7 @@
     const confirmPanel = document.getElementById('confirmPanel');
     const loadingPanel = document.getElementById('loadingPanel');
     const successPanel = document.getElementById('successPanel');
+    const successSummary = document.getElementById('successSummary');
 
     let selectedValue = '';
     let selectedSlot = null;
@@ -1022,7 +1069,6 @@
 
     document.getElementById('backToEdit').addEventListener('click', () => {
       confirmPanel.classList.remove('is-open');
-      successPanel.classList.add('is-open');
       reserveForm.style.display = 'block';
     });
 
@@ -1046,29 +1092,42 @@
         message: formData.get('message')
       };
 
-      await fetch(GAS_WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
-        body: JSON.stringify(payload)
-      });
+      const finalSubmitButton = document.getElementById('finalSubmit');
+      finalSubmitButton.disabled = true;
+      finalSubmitButton.textContent = '送信中...';
 
-      document.getElementById('successSummary').innerHTML =
-      `${payload.menu}<br>${selectedSlot.label}`;
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload)
+        });
 
-      confirmPanel.classList.remove('is-open');
-      reserveForm.style.display = 'block';
-      reserveForm.reset();
-      treatmentType.value = '';
-      visitType.value = '';
-      menuSelect.value = '';
-      reserveForm.classList.remove('is-open');
+        successSummary.innerHTML = `${payload.menu}<br />${selectedSlot.label}`;
 
-      document.querySelectorAll('.slot.selected').forEach((el) => el.classList.remove('selected'));
-      selectedSlot = null;
-      selectedText.textContent = '未選択';
+        confirmPanel.classList.remove('is-open');
+        reserveForm.style.display = 'block';
+        reserveForm.reset();
+        treatmentType.value = '';
+        visitType.value = '';
+        menuSelect.value = '';
+        reserveForm.classList.remove('is-open');
+
+        document.querySelectorAll('.slot.selected').forEach((el) => el.classList.remove('selected'));
+        selectedSlot = null;
+        selectedText.textContent = '未選択';
+
+        successPanel.classList.add('is-open');
+        successPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (error) {
+        alert('送信中にエラーが発生しました。時間をおいて再度お試しください。');
+      } finally {
+        finalSubmitButton.disabled = false;
+        finalSubmitButton.textContent = 'この内容で予約';
+      }
     });
 
     applyPresetFromUrl();
