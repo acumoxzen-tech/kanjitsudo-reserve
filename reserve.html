@@ -441,8 +441,9 @@
     .confirm-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 18px;
+      gap: 12px;
+      margin-top: 20px;
+      align-items: stretch;
     }
 
     .success-panel {
@@ -514,6 +515,29 @@
       justify-content: center;
       text-decoration: none;
       box-shadow: 0 14px 28px rgba(21, 18, 14, 0.18);
+    }
+
+
+    .confirm-actions .ghost-btn,
+    .confirm-actions .primary-btn {
+      width: 100%;
+      min-height: 56px;
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: nowrap;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+    }
+
+    .confirm-actions .ghost-btn {
+      background: rgba(251, 248, 240, 0.72);
+    }
+
+    .is-hidden {
+      display: none !important;
     }
 
   </style>
@@ -629,7 +653,7 @@
       </form>
 
       <div class="confirm-panel" id="confirmPanel">
-        <div class="confirm-title">予約内容確認</div>
+        <div class="confirm-title">ご予約内容の確認</div>
 
         <div class="confirm-item">
           <div class="confirm-label">施術メニュー</div>
@@ -662,27 +686,30 @@
         </div>
 
         <div class="confirm-actions">
-          <button class="ghost-btn" type="button" id="backToEdit">修正する</button>
-          <button class="primary-btn" type="button" id="finalSubmit">この内容で予約</button>
+          <button class="ghost-btn" type="button" id="backToEdit">内容を修正</button>
+          <button class="primary-btn" type="button" id="finalSubmit">予約を確定する</button>
         </div>
       </div>
-
-
       <div class="success-panel" id="successPanel">
         <div class="success-mark">✓</div>
         <div class="success-title">ご予約を承りました</div>
         <div class="success-text">
           ご予約ありがとうございます。<br />
-          確認メールをお送りしております。<br />
+          確認メールをお送りしております。
+        </div>
+
+        <div class="success-summary" id="successSummary"></div>
+
+        <div class="success-text">
           当日のご来院を心よりお待ちしております。
         </div>
-        <div class="success-summary" id="successSummary"></div>
+
         <a class="home-link" href="https://acumoxzen-tech.github.io/kanjitsudo-site/?ver=20260518#top">
           還日堂ホームへ戻る
         </a>
       </div>
 
-      <div class="note">
+      <div class="note" id="noticePanel">
         <div class="note-title">ご予約に関する注意事項</div>
         ・この段階では仮予約です。確定は次の画面または返信にて行います。<br />
         ・キャンセルの場合はお早めにご連絡ください。
@@ -708,6 +735,7 @@
     const calendarArea = document.getElementById('calendarArea');
     const confirmPanel = document.getElementById('confirmPanel');
     const loadingPanel = document.getElementById('loadingPanel');
+    const noticePanel = document.getElementById('noticePanel');
     const successPanel = document.getElementById('successPanel');
     const successSummary = document.getElementById('successSummary');
 
@@ -1064,11 +1092,13 @@
 
       reserveForm.style.display = 'none';
       confirmPanel.classList.add('is-open');
+      noticePanel.classList.add('is-hidden');
       confirmPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     document.getElementById('backToEdit').addEventListener('click', () => {
       confirmPanel.classList.remove('is-open');
+      noticePanel.classList.remove('is-hidden');
       reserveForm.style.display = 'block';
     });
 
@@ -1106,9 +1136,15 @@
           body: JSON.stringify(payload)
         });
 
-        successSummary.innerHTML = `${payload.menu}<br />${selectedSlot.label}`;
+        successSummary.innerHTML =
+          `<div style="color:var(--muted);font-size:11px;margin-bottom:4px;">ご予約日時</div>` +
+          `<div>${selectedSlot.label}</div>` +
+          `<div style="height:12px;"></div>` +
+          `<div style="color:var(--muted);font-size:11px;margin-bottom:4px;">施術メニュー</div>` +
+          `<div>${payload.menu}</div>`;
 
         confirmPanel.classList.remove('is-open');
+        noticePanel.classList.add('is-hidden');
         reserveForm.style.display = 'block';
         reserveForm.reset();
         treatmentType.value = '';
@@ -1126,7 +1162,7 @@
         alert('送信中にエラーが発生しました。時間をおいて再度お試しください。');
       } finally {
         finalSubmitButton.disabled = false;
-        finalSubmitButton.textContent = 'この内容で予約';
+        finalSubmitButton.textContent = '予約を確定する';
       }
     });
 
