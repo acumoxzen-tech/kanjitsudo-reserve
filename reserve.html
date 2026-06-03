@@ -444,7 +444,35 @@
       gap: 10px;
       margin-top: 18px;
     }
-  </style>
+  
+    .success-panel{
+      display:none;
+      margin-top:16px;
+      border:1px solid var(--line-strong);
+      border-radius:24px;
+      padding:28px 22px;
+      background:rgba(251,248,240,0.92);
+      text-align:center;
+      box-shadow:var(--shadow);
+    }
+    .success-panel.is-open{display:block;}
+    .success-mark{
+      font-size:42px;
+      margin-bottom:12px;
+      color:var(--gold);
+    }
+    .success-title{
+      font-size:24px;
+      letter-spacing:.12em;
+      margin-bottom:12px;
+    }
+    .success-text{
+      color:var(--ink-soft);
+      line-height:1.9;
+      margin-bottom:18px;
+    }
+    
+</style>
 </head>
 <body>
   <main class="app">
@@ -595,6 +623,19 @@
         </div>
       </div>
 
+      
+      <div class="success-panel" id="successPanel">
+        <div class="success-mark">✦</div>
+        <div class="success-title">ご予約を承りました</div>
+        <div class="success-text">
+          ご予約ありがとうございます。<br>
+          確認メールをお送りしております。<br>
+          当日のご来院を心よりお待ちしております。
+        </div>
+        <div id="successSummary" class="success-text"></div>
+        <a class="primary-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none;" href="https://acumoxzen-tech.github.io/kanjitsudo-site/?ver=20260518#top">還日堂ホームへ戻る</a>
+      </div>
+
       <div class="note">
         <div class="note-title">ご予約に関する注意事項</div>
         ・この段階では仮予約です。確定は次の画面または返信にて行います。<br />
@@ -621,6 +662,7 @@
     const calendarArea = document.getElementById('calendarArea');
     const confirmPanel = document.getElementById('confirmPanel');
     const loadingPanel = document.getElementById('loadingPanel');
+    const successPanel = document.getElementById('successPanel');
 
     let selectedValue = '';
     let selectedSlot = null;
@@ -980,6 +1022,7 @@
 
     document.getElementById('backToEdit').addEventListener('click', () => {
       confirmPanel.classList.remove('is-open');
+      successPanel.classList.add('is-open');
       reserveForm.style.display = 'block';
     });
 
@@ -1012,7 +1055,8 @@
         body: JSON.stringify(payload)
       });
 
-      alert('ご予約ありがとうございます。確認メールをお送りしました。');
+      document.getElementById('successSummary').innerHTML =
+      `${payload.menu}<br>${selectedSlot.label}`;
 
       confirmPanel.classList.remove('is-open');
       reserveForm.style.display = 'block';
